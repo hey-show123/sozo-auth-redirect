@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOZO - 認証中</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .container {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .logo {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 2rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .message {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .sub-message {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+        .button {
+            display: none;
+            margin-top: 2rem;
+            padding: 12px 24px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .error {
+            display: none;
+            background: rgba(255, 59, 48, 0.2);
+            border: 1px solid rgba(255, 59, 48, 0.5);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">SOZO</div>
+        <div class="spinner" id="spinner"></div>
+        <div class="message" id="message">認証処理中...</div>
+        <div class="sub-message" id="sub-message">アプリに自動的に戻ります</div>
+        <a href="#" class="button" id="open-button">アプリを開く</a>
+        <div class="error" id="error-message"></div>
+    </div>
+    
+    <script>
+        // URLパラメータとフラグメントを取得
+        const params = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        
+        // デバッグ用ログ
+        console.log('URL:', window.location.href);
+        console.log('Query params:', params.toString());
+        console.log('Hash params:', hashParams.toString());
+        
+        // すべてのパラメータを結合
+        const allParams = new URLSearchParams();
+        
+        // クエリパラメータを追加
+        for (const [key, value] of params) {
+            allParams.append(key, value);
+        }
+        
+        // ハッシュフラグメントのパラメータを追加
+        for (const [key, value] of hashParams) {
+            allParams.append(key, value);
+        }
+        
+        // エラーチェック
+        const error = params.get('error') || hashParams.get('error');
+        const errorDescription = params.get('error_description') || hashParams.get('error_description');
+        
+        if (error) {
+            // エラーがある場合
+            document.getElementById('spinner').style.display = 'none';
+            document.getElementById('message').textContent = 'エラーが発生しました';
+            document.getElementById('sub-message').textContent = errorDescription || error;
+            document.getElementById('error-message').style.display = 'block';
+            document.getElementById('error-message').textContent = 
+                error === 'access_denied' ? 'アクセスが拒否されました' :
+                error === 'otp_expired' ? 'リンクの有効期限が切れています。もう一度お試しください。' :
+                'エラー: ' + error;
+        }
+        
+        // アプリのディープリンクURL構築
+        let appUrl = 'sozo://auth/callback';
+        if (allParams.toString()) {
+            appUrl += '?' + allParams.toString();
+        }
+        
+        console.log('Redirecting to:', appUrl);
+        
+        // ボタンにURLを設定
+        document.getElementById('open-button').href = appUrl;
+        
+        // アプリへリダイレクト
+        if (!error) {
+            window.location.href = appUrl;
+            
+            // 3秒後にボタンを表示（アプリが開かない場合）
+            setTimeout(() => {
+                document.getElementById('open-button').style.display = 'inline-block';
+                document.getElementById('sub-message').textContent = 'アプリが開かない場合は、下のボタンをタップしてください';
+            }, 3000);
+        } else {
+            // エラー時は即座にボタンを表示
+            document.getElementById('open-button').style.display = 'inline-block';
+            document.getElementById('open-button').textContent = 'アプリに戻る';
+        }
+    </script>
+</body>
+</html>
