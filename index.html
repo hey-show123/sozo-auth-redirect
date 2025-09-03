@@ -90,6 +90,7 @@
         <div class="sub-message" id="sub-message">アプリに自動的に戻ります</div>
         <a href="#" class="button" id="open-button">アプリを開く</a>
         <div class="error" id="error-message"></div>
+        <div id="debug-info" style="display: none; margin-top: 2rem; padding: 1rem; background: rgba(0,0,0,0.1); border-radius: 8px; font-size: 0.8rem; word-break: break-all;"></div>
     </div>
     
     <script>
@@ -133,12 +134,35 @@
         
         // アプリのディープリンクURL構築
         // iOSではバンドルIDベースのスキームを使用
-        let appUrl = 'com.hey-show.sozoapp://auth/callback';
-        if (allParams.toString()) {
-            appUrl += '?' + allParams.toString();
+        const scheme = 'com.hey-show.sozoapp';
+        const host = 'auth';
+        const path = '/callback';
+        
+        // URLSearchParamsを使用してクリーンなクエリ文字列を生成
+        const queryString = allParams.toString();
+        let appUrl = `${scheme}://${host}${path}`;
+        if (queryString) {
+            // クエリ文字列から不要な文字を削除
+            const cleanedQuery = queryString.replace(/[\r\n\t\\]/g, '');
+            appUrl += '?' + cleanedQuery;
         }
         
         console.log('Redirecting to:', appUrl);
+        console.log('Query string:', queryString);
+        
+        // デバッグ情報を表示（開発用）
+        const debugInfo = document.getElementById('debug-info');
+        debugInfo.innerHTML = `
+            <strong>Debug Info:</strong><br>
+            Original URL: ${window.location.href}<br>
+            App URL: ${appUrl}<br>
+            Query String: ${queryString}<br>
+            Code: ${params.get('code') || hashParams.get('code') || 'Not found'}
+        `;
+        // デバッグモード：URLに?debug=trueが含まれる場合は表示
+        if (params.get('debug') === 'true') {
+            debugInfo.style.display = 'block';
+        }
         
         // ボタンにURLを設定
         document.getElementById('open-button').href = appUrl;
