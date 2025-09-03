@@ -132,7 +132,8 @@
         }
         
         // アプリのディープリンクURL構築
-        let appUrl = 'sozo://auth/callback';
+        // iOSではバンドルIDベースのスキームを使用
+        let appUrl = 'com.hey-show.sozoapp://auth/callback';
         if (allParams.toString()) {
             appUrl += '?' + allParams.toString();
         }
