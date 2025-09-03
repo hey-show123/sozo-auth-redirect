@@ -133,8 +133,8 @@
         }
         
         // アプリのディープリンクURL構築
-        // iOSではバンドルIDベースのスキームを使用
-        const scheme = 'com.hey-show.sozoapp';
+        // sozo:// スキームを使用（アプリが対応しているため）
+        const scheme = 'sozo';
         const host = 'auth';
         const path = '/callback';
         
